@@ -210,7 +210,7 @@ export default function ClosuresModule() {
       </div>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={currentTab} onChange={(_, v) => setCurrentTab(v)}>
+        <Tabs value={currentTab} onChange={(_, v) => setCurrentTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
           <Tab label="Diarios" />
           <Tab label="Semanales" />
           <Tab label="Mensuales" />

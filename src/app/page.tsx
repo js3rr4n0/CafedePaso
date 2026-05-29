@@ -170,7 +170,9 @@ export default function App() {
               <Tabs
                 value={currentTab}
                 onChange={(_, newValue) => setCurrentTab(newValue)}
-                variant="fullWidth"
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
                 sx={{
                   '& .MuiTabs-indicator': {
                     height: 5,
