@@ -2,17 +2,17 @@
 
 Sistema de Punto de Venta (POS) moderno y eficiente, diseñado específicamente para la cafetería "Café de Paso". Construido con Next.js, React, Material-UI y PostgreSQL (Neon).
 
-## 📸 Capturas del Sistema
+## Capturas del Sistema
 
 ### Módulo de Ventas
-![Módulo de Ventas](/screenshots/ventas.png)
+![Módulo de Ventas](public/screenshots/ventas.png "Módulo de Ventas")
 *Interfaz principal para toma de pedidos y cobro, con acceso rápido a categorías de productos y carrito de compras.*
 
 ### Historial de Ventas
-![Historial de Ventas](/screenshots/historial.png)
+![Historial de Ventas](public/screenshots/historial.png "Historial de Ventas")
 *Historial completo de ventas con filtros por fecha y desglose de ingresos por método de pago.*
 
-## 🚀 Características Principales
+## Características Principales
 
 - **Gestión de Ventas:** Interfaz intuitiva para registrar compras de forma rápida (optimizado para pantallas táctiles/tablets).
 - **Control de Productos:** Administra el catálogo de bebidas, comida y extras.
@@ -20,7 +20,7 @@ Sistema de Punto de Venta (POS) moderno y eficiente, diseñado específicamente 
 - **Exportación de Datos:** Descarga en formato CSV de detalles de ventas, productos populares y cierres para contabilidad.
 - **Base de Datos en la Nube:** Sincronización en tiempo real con Neon (PostgreSQL).
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 - [Next.js](https://nextjs.org/) (App Router)
 - [React](https://reactjs.org/)
@@ -28,7 +28,7 @@ Sistema de Punto de Venta (POS) moderno y eficiente, diseñado específicamente 
 - [PostgreSQL](https://www.postgresql.org/) alojado en [Neon](https://neon.tech/)
 - Iconos de [Lucide-React](https://lucide.dev/)
 
-## 📦 Instalación y Uso Local
+## Instalación y Uso Local
 
 1. Clonar el repositorio:
    ```bash
