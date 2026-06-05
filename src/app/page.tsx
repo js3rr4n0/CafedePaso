@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, Tab, Box, ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { Coffee, ShoppingCart, Package, ClipboardList, Download, Clock } from 'lucide-react';
+import { Coffee, ShoppingCart, Package, ClipboardList, Download, Clock, History as HistoryIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SalesModule from '@/components/SalesModule';
 import ProductsModule from '@/components/ProductsModule';
 import ClosuresModule from '@/components/ClosuresModule';
+import HistoryModule from '@/components/HistoryModule';
 import ExportModule from '@/components/ExportModule';
 import HelpGuide from '@/components/HelpGuide';
 
@@ -45,6 +46,7 @@ const tabsConfig = [
   { icon: ShoppingCart, label: 'Ventas', color: '#2E7D32' },
   { icon: Package, label: 'Productos', color: '#1565C0' },
   { icon: ClipboardList, label: 'Cierres', color: '#6A1B9A' },
+  { icon: HistoryIcon, label: 'Historial', color: '#0277BD' },
   { icon: Download, label: 'Exportar', color: '#E65100' },
 ];
 
@@ -234,7 +236,8 @@ export default function App() {
                 {currentTab === 0 && <SalesModule />}
                 {currentTab === 1 && <ProductsModule />}
                 {currentTab === 2 && <ClosuresModule />}
-                {currentTab === 3 && <ExportModule />}
+                {currentTab === 3 && <HistoryModule />}
+                {currentTab === 4 && <ExportModule />}
               </motion.div>
             </AnimatePresence>
           </motion.div>
