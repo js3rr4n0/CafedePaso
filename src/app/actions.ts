@@ -216,7 +216,7 @@ export async function getDailyAggregatedSales(startDate: string, endDate: string
   const res = await query(`
     WITH daily_sales AS (
       SELECT 
-        v.fecha_hora::date as date,
+        TO_CHAR(v.fecha_hora::date, 'YYYY-MM-DD') as date,
         COUNT(v.id) as num_transactions,
         SUM(v.total) as total_sales,
         SUM(CASE WHEN mp.nombre = 'efectivo' THEN v.total ELSE 0 END) as total_cash,
@@ -226,11 +226,11 @@ export async function getDailyAggregatedSales(startDate: string, endDate: string
       JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
       WHERE v.fecha_hora >= $1::timestamp AND v.fecha_hora <= $2::timestamp + interval '1 day'
       AND v.anulada = FALSE
-      GROUP BY v.fecha_hora::date
+      GROUP BY TO_CHAR(v.fecha_hora::date, 'YYYY-MM-DD')
     ),
     daily_items AS (
       SELECT 
-        v.fecha_hora::date as date,
+        TO_CHAR(v.fecha_hora::date, 'YYYY-MM-DD') as date,
         vi.nombre_producto as name,
         SUM(vi.cantidad) as quantity,
         SUM(vi.subtotal) as subtotal
@@ -238,7 +238,7 @@ export async function getDailyAggregatedSales(startDate: string, endDate: string
       JOIN ventas v ON v.id = vi.venta_id
       WHERE v.fecha_hora >= $1::timestamp AND v.fecha_hora <= $2::timestamp + interval '1 day'
       AND v.anulada = FALSE
-      GROUP BY v.fecha_hora::date, vi.nombre_producto
+      GROUP BY TO_CHAR(v.fecha_hora::date, 'YYYY-MM-DD'), vi.nombre_producto
     )
     SELECT 
       ds.date,
