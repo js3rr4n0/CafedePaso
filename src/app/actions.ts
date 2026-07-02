@@ -211,3 +211,58 @@ export async function getPeriodicTotals() {
     thisMonth: Number(res.rows[0].this_month)
   };
 }
+
+export async function getDailyAggregatedSales(startDate: string, endDate: string) {
+  const res = await query(`
+    WITH daily_sales AS (
+      SELECT 
+        v.fecha_hora::date as date,
+        COUNT(v.id) as num_transactions,
+        SUM(v.total) as total_sales,
+        SUM(CASE WHEN mp.nombre = 'efectivo' THEN v.total ELSE 0 END) as total_cash,
+        SUM(CASE WHEN mp.nombre = 'tarjeta' THEN v.total ELSE 0 END) as total_card,
+        SUM(CASE WHEN mp.nombre = 'transferencia' THEN v.total ELSE 0 END) as total_transfer
+      FROM ventas v
+      JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
+      WHERE v.fecha_hora >= $1::timestamp AND v.fecha_hora <= $2::timestamp + interval '1 day'
+      AND v.anulada = FALSE
+      GROUP BY v.fecha_hora::date
+    ),
+    daily_items AS (
+      SELECT 
+        v.fecha_hora::date as date,
+        vi.nombre_producto as name,
+        SUM(vi.cantidad) as quantity,
+        SUM(vi.subtotal) as subtotal
+      FROM venta_items vi
+      JOIN ventas v ON v.id = vi.venta_id
+      WHERE v.fecha_hora >= $1::timestamp AND v.fecha_hora <= $2::timestamp + interval '1 day'
+      AND v.anulada = FALSE
+      GROUP BY v.fecha_hora::date, vi.nombre_producto
+    )
+    SELECT 
+      ds.date,
+      ds.num_transactions,
+      ds.total_sales,
+      ds.total_cash,
+      ds.total_card,
+      ds.total_transfer,
+      (
+        SELECT json_agg(json_build_object('name', di.name, 'quantity', di.quantity, 'total', di.subtotal))
+        FROM daily_items di
+        WHERE di.date = ds.date
+      ) as items
+    FROM daily_sales ds
+    ORDER BY ds.date DESC;
+  `, [startDate, endDate]);
+
+  return res.rows.map(r => ({
+    date: String(r.date),
+    numTransactions: Number(r.num_transactions),
+    totalSales: Number(r.total_sales),
+    cash: Number(r.total_cash),
+    card: Number(r.total_card),
+    transfer: Number(r.total_transfer),
+    items: r.items ? r.items.sort((a: any, b: any) => b.total - a.total) : []
+  }));
+}

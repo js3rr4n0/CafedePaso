@@ -22,13 +22,14 @@ import {
 } from '@mui/material';
 import { Search, History, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSalesData, getPeriodicTotals } from '@/app/actions';
+import { getDailyAggregatedSales, getPeriodicTotals } from '@/app/actions';
 
 function Row({ sale }: { sale: any }) {
   const [open, setOpen] = useState(false);
-  const date = new Date(sale.date).toLocaleString('es-ES', { 
-    dateStyle: 'medium', 
-    timeStyle: 'short' 
+  const [year, month, day] = sale.date.split('-');
+  const localDate = new Date(Number(year), Number(month) - 1, Number(day));
+  const dateStr = localDate.toLocaleDateString('es-ES', { 
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
   });
 
   return (
@@ -43,23 +44,19 @@ function Row({ sale }: { sale: any }) {
             {open ? <ChevronUp /> : <ChevronDown />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row" className="font-medium">
-          #{sale.id}
+        <TableCell component="th" scope="row" className="font-medium capitalize">
+          {dateStr}
         </TableCell>
-        <TableCell>{date}</TableCell>
+        <TableCell>{sale.numTransactions}</TableCell>
         <TableCell>
-          <Chip 
-            label={sale.paymentMethod} 
-            color={
-              sale.paymentMethod === 'efectivo' ? 'success' : 
-              sale.paymentMethod === 'tarjeta' ? 'info' : 'warning'
-            } 
-            size="small" 
-            variant="outlined"
-          />
+          <div className="flex gap-2 flex-wrap">
+            {sale.cash > 0 && <Chip label={`Efectivo: $${sale.cash.toFixed(2)}`} color="success" size="small" variant="outlined"/>}
+            {sale.card > 0 && <Chip label={`Tarjeta: $${sale.card.toFixed(2)}`} color="info" size="small" variant="outlined"/>}
+            {sale.transfer > 0 && <Chip label={`Transf: $${sale.transfer.toFixed(2)}`} color="warning" size="small" variant="outlined"/>}
+          </div>
         </TableCell>
         <TableCell align="right" className="font-bold text-gray-700">
-          ${sale.total.toFixed(2)}
+          ${sale.totalSales.toFixed(2)}
         </TableCell>
       </TableRow>
       <TableRow>
@@ -67,29 +64,25 @@ function Row({ sale }: { sale: any }) {
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 2, padding: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
               <Typography variant="h6" gutterBottom component="div" className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">
-                Detalle de Venta
+                Productos Vendidos en el Día
               </Typography>
               <Table size="small" aria-label="purchases">
                 <TableHead>
                   <TableRow>
                     <TableCell className="text-xs text-gray-500">Producto</TableCell>
-                    <TableCell className="text-xs text-gray-500">Notas</TableCell>
-                    <TableCell align="right" className="text-xs text-gray-500">Cantidad</TableCell>
-                    <TableCell align="right" className="text-xs text-gray-500">Precio Unit.</TableCell>
-                    <TableCell align="right" className="text-xs text-gray-500">Subtotal</TableCell>
+                    <TableCell align="right" className="text-xs text-gray-500">Cantidad Vendida</TableCell>
+                    <TableCell align="right" className="text-xs text-gray-500">Ingreso Generado</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {sale.items.map((item: any, index: number) => (
                     <TableRow key={index}>
                       <TableCell component="th" scope="row" className="font-medium">
-                        {item.product.name}
+                        {item.name}
                       </TableCell>
-                      <TableCell className="italic text-gray-500">{sale.comments || '-'}</TableCell>
                       <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${item.product.price.toFixed(2)}</TableCell>
                       <TableCell align="right" className="font-bold text-gray-700">
-                        ${(item.quantity * item.product.price).toFixed(2)}
+                        ${item.total.toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -125,7 +118,7 @@ export default function HistoryModule() {
     if (!start || !end) return;
     setLoading(true);
     try {
-      const data = await getSalesData(start, end);
+      const data = await getDailyAggregatedSales(start, end);
       setSales(data);
     } catch (e) {
       toast.error('Error al cargar el historial de ventas');
@@ -142,10 +135,11 @@ export default function HistoryModule() {
   };
 
   // Calculate totals
-  const totalIngresos = sales.reduce((sum, sale) => sum + sale.total, 0);
-  const totalEfectivo = sales.filter(s => s.paymentMethod === 'efectivo').reduce((sum, s) => sum + s.total, 0);
-  const totalTarjeta = sales.filter(s => s.paymentMethod === 'tarjeta').reduce((sum, s) => sum + s.total, 0);
-  const totalTransferencia = sales.filter(s => s.paymentMethod === 'transferencia').reduce((sum, s) => sum + s.total, 0);
+  const totalTransacciones = sales.reduce((sum, sale) => sum + sale.numTransactions, 0);
+  const totalIngresos = sales.reduce((sum, sale) => sum + sale.totalSales, 0);
+  const totalEfectivo = sales.reduce((sum, sale) => sum + sale.cash, 0);
+  const totalTarjeta = sales.reduce((sum, sale) => sum + sale.card, 0);
+  const totalTransferencia = sales.reduce((sum, sale) => sum + sale.transfer, 0);
 
   return (
     <div>
@@ -196,7 +190,7 @@ export default function HistoryModule() {
               <Typography variant="h6" className="mb-3 text-amber-900">Resumen del Periodo</Typography>
               <div className="flex justify-between items-center mb-1">
                 <Typography variant="body2" className="text-amber-800">Transacciones:</Typography>
-                <Typography variant="body1" className="font-bold text-amber-900">{sales.length}</Typography>
+                <Typography variant="body1" className="font-bold text-amber-900">{totalTransacciones}</Typography>
               </div>
               <div className="flex justify-between items-center mb-3">
                 <Typography variant="body2" className="text-amber-800">Total Ingresos:</Typography>
@@ -224,10 +218,10 @@ export default function HistoryModule() {
           <TableHead className="bg-gray-50 border-b border-gray-200">
             <TableRow>
               <TableCell />
-              <TableCell className="font-bold text-gray-600">ID Venta</TableCell>
-              <TableCell className="font-bold text-gray-600">Fecha y Hora</TableCell>
-              <TableCell className="font-bold text-gray-600">Método de Pago</TableCell>
-              <TableCell className="font-bold text-gray-600" align="right">Total</TableCell>
+              <TableCell className="font-bold text-gray-600">Fecha</TableCell>
+              <TableCell className="font-bold text-gray-600">Transacciones</TableCell>
+              <TableCell className="font-bold text-gray-600">Desglose de Ingresos</TableCell>
+              <TableCell className="font-bold text-gray-600" align="right">Total del Día</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -239,7 +233,7 @@ export default function HistoryModule() {
               </TableRow>
             ) : (
               sales.map((sale) => (
-                <Row key={sale.id} sale={sale} />
+                <Row key={sale.date} sale={sale} />
               ))
             )}
           </TableBody>
