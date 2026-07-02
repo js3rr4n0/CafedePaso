@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import { Search, History, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSalesData } from '@/app/actions';
+import { getSalesData, getPeriodicTotals } from '@/app/actions';
 
 function Row({ sale }: { sale: any }) {
   const [open, setOpen] = useState(false);
@@ -108,6 +108,7 @@ export default function HistoryModule() {
   const [endDate, setEndDate] = useState('');
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [totals, setTotals] = useState({ thisWeek: 0, thisMonth: 0 });
 
   useEffect(() => {
     // Set default dates to today
@@ -115,6 +116,9 @@ export default function HistoryModule() {
     setStartDate(today);
     setEndDate(today);
     fetchSales(today, today);
+    
+    // Fetch periodic totals
+    getPeriodicTotals().then(setTotals).catch(console.error);
   }, []);
 
   const fetchSales = async (start: string, end: string) => {
@@ -215,7 +219,7 @@ export default function HistoryModule() {
         </Grid>
       </Grid>
 
-      <TableContainer component={Paper} className="shadow-md rounded-xl overflow-hidden border border-gray-100">
+      <TableContainer component={Paper} className="shadow-md rounded-xl overflow-hidden border border-gray-100 mb-6">
         <Table aria-label="collapsible table">
           <TableHead className="bg-gray-50 border-b border-gray-200">
             <TableRow>
@@ -241,6 +245,25 @@ export default function HistoryModule() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card className="border border-green-200 shadow-sm bg-gradient-to-r from-green-50 to-emerald-50">
+            <CardContent>
+              <Typography variant="body2" className="text-green-800 font-medium mb-1">Total Semana Actual</Typography>
+              <Typography variant="h4" className="font-bold text-green-700">${totals.thisWeek.toFixed(2)}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card className="border border-blue-200 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardContent>
+              <Typography variant="body2" className="text-blue-800 font-medium mb-1">Total Mes Actual</Typography>
+              <Typography variant="h4" className="font-bold text-blue-700">${totals.thisMonth.toFixed(2)}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </div>
   );
 }

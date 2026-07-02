@@ -196,3 +196,18 @@ export async function getProductSalesData(startDate: string, endDate: string) {
     total: Number(r.total)
   }));
 }
+
+export async function getPeriodicTotals() {
+  const res = await query(`
+    SELECT 
+      COALESCE(SUM(CASE WHEN date_trunc('week', fecha_hora) = date_trunc('week', CURRENT_DATE) THEN total ELSE 0 END), 0) as this_week,
+      COALESCE(SUM(CASE WHEN date_trunc('month', fecha_hora) = date_trunc('month', CURRENT_DATE) THEN total ELSE 0 END), 0) as this_month
+    FROM ventas
+    WHERE anulada = FALSE
+  `);
+  
+  return {
+    thisWeek: Number(res.rows[0].this_week),
+    thisMonth: Number(res.rows[0].this_month)
+  };
+}

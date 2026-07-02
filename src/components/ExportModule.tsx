@@ -15,10 +15,10 @@ import {
 } from '@mui/material';
 import { Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSalesData, getProductSalesData, getClosures } from '@/app/actions';
+import { getSalesData, getProductSalesData } from '@/app/actions';
 
 export default function ExportModule() {
-  const [exportType, setExportType] = useState<'sales' | 'products' | 'closures'>('sales');
+  const [exportType, setExportType] = useState<'sales' | 'products'>('sales');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -85,31 +85,6 @@ export default function ExportModule() {
     }
   };
 
-  const exportClosures = async () => {
-    try {
-      const closures = await getClosures();
-
-      if (closures.length === 0) {
-        toast.error('No hay cierres registrados');
-        return;
-      }
-
-      let csv = 'ID,Fecha,Tipo,Total Ventas,Cantidad Ventas,Efectivo,Tarjeta,Transferencia\n';
-
-      closures.forEach(closure => {
-        const date = new Date(closure.date).toLocaleDateString('es-ES');
-        const type = closure.type === 'daily' ? 'Diario' : closure.type === 'weekly' ? 'Semanal' : 'Mensual';
-        
-        csv += `"${closure.id}","${date}","${type}",${closure.totalSales.toFixed(2)},${closure.salesCount},${(closure.paymentMethods.efectivo || 0).toFixed(2)},${(closure.paymentMethods.tarjeta || 0).toFixed(2)},${(closure.paymentMethods.transferencia || 0).toFixed(2)}\n`;
-      });
-
-      downloadCSV(csv, `cierres_${new Date().toISOString().split('T')[0]}.csv`);
-      toast.success('Archivo CSV descargado');
-    } catch (e) {
-      toast.error('Error al exportar cierres');
-    }
-  };
-
   const handleExport = () => {
     switch (exportType) {
       case 'sales':
@@ -117,9 +92,6 @@ export default function ExportModule() {
         break;
       case 'products':
         exportProducts();
-        break;
-      case 'closures':
-        exportClosures();
         break;
     }
   };
@@ -142,12 +114,10 @@ export default function ExportModule() {
                   >
                     <MenuItem key="sales" value="sales">Ventas Detalladas</MenuItem>
                     <MenuItem key="products" value="products">Productos Vendidos</MenuItem>
-                    <MenuItem key="closures" value="closures">Resumen de Cierres</MenuItem>
                   </Select>
                 </FormControl>
 
-                {exportType !== 'closures' && (
-                  <>
+                <>
                     <TextField
                       fullWidth
                       type="date"
@@ -166,7 +136,6 @@ export default function ExportModule() {
                       slotProps={{ inputLabel: { shrink: true } }}
                     />
                   </>
-                )}
 
                 <Button
                   variant="contained"
@@ -194,11 +163,8 @@ export default function ExportModule() {
                   <Typography variant="body2" className="mb-2">
                     <strong>Ventas Detalladas:</strong> Exporta todas las ventas con detalle de productos, cantidades, comentarios y métodos de pago.
                   </Typography>
-                  <Typography variant="body2" className="mb-2">
-                    <strong>Productos Vendidos:</strong> Resumen agregado de productos vendidos con cantidades totales e ingresos.
-                  </Typography>
                   <Typography variant="body2">
-                    <strong>Resumen de Cierres:</strong> Exporta todos los cierres registrados (diarios, semanales y mensuales).
+                    <strong>Productos Vendidos:</strong> Resumen agregado de productos vendidos con cantidades totales e ingresos.
                   </Typography>
                 </div>
               </div>
